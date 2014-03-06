@@ -3,37 +3,15 @@
  */
 
 var restify = require('restify');
-var fs = require('fs');
+
+var fileutil = require("./lib/fileutil");
 
 var server = restify.createServer();
 
-var errorHandler = function errorHandler(err) {
-	console.log(err);
-};
+var keyDirectory = '/opt/direct/certificates';
+var logDirectory = '/var/log/upstart/direct-config.log';
 
-function putFile(req, res, next) {
-	console.log('in putfile');
-
-	var data = new Buffer('');
-	
-	req.on('data', function(chunk) {
-		data = Buffer.concat([data, chunk]);
-	});
-	
-	req.on('end', function() {
-		fs.writeFile('/Work/sandbox/serverin/patient.der', data, 'binary', errorHandler);
-		res.send(200);
-	});
-}
-
-function getFile(req, res, next) {
-	fs.readFile('/Work/sandbox/serverout/provider.der', function(err, data) {
-		res.setHeader('content-type', 'application/octet-stream');
-		res.send(data);
-	});
-}
-
-server.put('/certificate', putFile);
-server.get('/certificate', getFile);
+server.put('/certificate', fileutil.putFile);
+server.get('/certificate', fileutil.getFile);
 
 server.listen(3000);
