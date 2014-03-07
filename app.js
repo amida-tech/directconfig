@@ -13,11 +13,16 @@ var server = restify.createServer();
 var keyDirectory = '/opt/direct/certificates';
 var logDirectory = '/var/log/upstart/direct-config.log';
 
+var options = {
+		pyscriptsdir: path.join(__dirname, "pyscripts"),
+		pycmd: "python"
+};
+
 server.put('/cert/:filename', function(req, res, next) {
 	var dirpath = (process.argv.length > 2) ? process.argv[2] : keyDirectory;
 	var filepath = path.join(dirpath, req.params.filename);
 	fileutil.putFile.call(this, req, filepath, function(error) {
-		configserver.putCert(filepath);
+		configserver.putCert(options, filepath);
 		res.send(200);
 	});
 });
