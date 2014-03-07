@@ -21,7 +21,7 @@ var options = {
 server.put('/cert/:filename', function(req, res, next) {
 	var dirpath = (process.argv.length > 2) ? process.argv[2] : keyDirectory;
 	var filepath = path.join(dirpath, req.params.filename);
-	fileutil.putFile.call(this, req, filepath, function(error) {
+        fileutil.putFile.call(this, req, filepath, function(error) {
 		configserver.putCert(options, filepath);
 		res.send(200);
 	});
