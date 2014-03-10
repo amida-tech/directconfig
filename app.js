@@ -27,6 +27,11 @@ server.put('/cert/:filename', function(req, res, next) {
 	});
 });
 
+server.del('/reset', function(req, res, next) {
+	configserver.clearAll(options);
+	res.send(200);
+});
+
 server.get('/cert/:filename', fileutil.getFile);
 
 server.listen(3000);
