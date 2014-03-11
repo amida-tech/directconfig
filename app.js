@@ -28,6 +28,12 @@ var settings = {
 	},
 	getPKCS10FilePath: function() {
 		return path.join(this.certDir, "dreq.pem");
+	},
+	getSignConfigFilePath: function() {
+		return path.join(this.certDir, "dsign-config");
+	},
+	getPath: function(filename) {
+		return path.join(this.certDir, filename);
 	}
 };
 
@@ -57,14 +63,20 @@ server.del('/reset', function(req, res, next) {
 	res.send(200);
 });
 
-server.post('/pkcs10', restify.bodyParser({mapParams: false}), function(req, res, next) {
+var bodyParser = restify.bodyParser({mapParams: false});
+
+server.post('/pkcs10', bodyParser, function(req, res, next) {
 	var info = req.body;
 	openssl.createPKCS10File(settings, info);
 	res.send(200);
-	next();
 });
 
-server.get('/cert/:filename', fileutil.getFile);
+server.post('/x509', bodyParser, function(req, res, next) {
+	var info = req.body;
+	console.log(req.readable);
+	openssl.createX509(settings, info);
+	res.send(200);
+});
 
 openssl.createPrivateKey(settings);
 server.listen(3000);
