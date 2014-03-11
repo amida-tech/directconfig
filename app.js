@@ -4,6 +4,7 @@
 
 var restify = require('restify');
 var path = require('path');
+var fs = require('fs');
 
 var fileutil = require("./lib/fileutil");
 var configserver = require("./lib/configserver");
@@ -30,12 +31,25 @@ var settings = {
 	}
 };
 
-server.put('/cert/:filename', function(req, res, next) {
+server.post('/file/:filename', function(req, res, next) {
 	var filepath = path.join(settings.certDir, req.params.filename);
     fileutil.putFile.call(this, req, filepath, function(error) {
-        configserver.putCert(settings.pyoptions, filepath);
         res.send(200);
 	});
+});
+
+server.get('/file/:filename', function(req, res, next) {
+	var filepath = path.join(settings.certDir, req.params.filename);
+	fs.readFile(filepath, function(err, data) {
+		res.setHeader('content-type', 'application/octet-stream');
+		res.send(data);
+	});
+});
+
+server.post('/cert/:filename', function(req, res, next) {
+	var filepath = path.join(settings.certDir, req.params.filename);
+	configserver.putCert(settings.pyoptions, filepath);
+	res.send(200);
 });
 
 server.del('/reset', function(req, res, next) {
