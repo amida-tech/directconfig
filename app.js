@@ -67,14 +67,19 @@ var bodyParser = restify.bodyParser({mapParams: false});
 
 server.post('/pkcs10', bodyParser, function(req, res, next) {
 	var info = req.body;
-	openssl.createPKCS10File(settings, info);
+	openssl.createPKCS10(settings, info);
 	res.send(200);
 });
 
 server.post('/x509', bodyParser, function(req, res, next) {
 	var info = req.body;
-	console.log(req.readable);
 	openssl.createX509(settings, info);
+	res.send(200);
+});
+
+server.post('/pkcs12', bodyParser, function(req, res, next) {
+	var info = req.body;
+	openssl.createPKCS12(settings, info);
 	res.send(200);
 });
 
