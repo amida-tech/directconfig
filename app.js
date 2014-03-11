@@ -18,9 +18,15 @@ var settings = {
 	},
 	certDir: (process.argv.length > 2) ? process.argv[2] : '/opt/direct/certificates',
 	passout: (process.argv.length > 3) ? process.argv[3] : 'pass:""',
-	privKeyFilename: "rsa-key.pem",
+	privKeyFilename: "drsa-key.pem",
 	getPrivKeyPath: function() {
 		return path.join(this.certDir, this.privKeyFilename);
+	},
+	getReqConfigFilePath: function() {
+		return path.join(this.certDir, "dreq-config");
+	},
+	getPKCS10FilePath: function() {
+		return path.join(this.certDir, "dreq.pem");
 	}
 };
 
@@ -35,6 +41,13 @@ server.put('/cert/:filename', function(req, res, next) {
 server.del('/reset', function(req, res, next) {
 	configserver.clearAll(settings.pyoptions);
 	res.send(200);
+});
+
+server.post('/pkcs10', restify.bodyParser({mapParams: false}), function(req, res, next) {
+	var info = req.body;
+	openssl.createPKCS10File(settings, info);
+	res.send(200);
+	next();
 });
 
 server.get('/cert/:filename', fileutil.getFile);
