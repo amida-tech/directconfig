@@ -37,6 +37,8 @@ var settings = {
 	}
 };
 
+var bodyParser = restify.bodyParser({mapParams: false});
+
 server.post('/file/:filename', function(req, res, next) {
 	var filepath = path.join(settings.certDir, req.params.filename);
     fileutil.putFile.call(this, req, filepath, function(error) {
@@ -58,7 +60,7 @@ server.post('/cert/:filename', function(req, res, next) {
 	res.send(200);
 });
 
-server.post('/trustbundle', function(req, res, next) {
+server.post('/trustbundle', bodyParser, function(req, res, next) {
 	var info = req.body;
 	configserver.putTrustBundle(settings.pyoptions, info);
 	res.send(200);
@@ -68,8 +70,6 @@ server.del('/reset', function(req, res, next) {
 	configserver.clearAll(settings.pyoptions);
 	res.send(200);
 });
-
-var bodyParser = restify.bodyParser({mapParams: false});
 
 server.post('/pkcs10', bodyParser, function(req, res, next) {
 	var info = req.body;
