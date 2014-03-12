@@ -58,6 +58,12 @@ server.post('/cert/:filename', function(req, res, next) {
 	res.send(200);
 });
 
+server.post('/trustbundle', function(req, res, next) {
+	var info = req.body;
+	configserver.putTrustBundle(settings.pyoptions, info);
+	res.send(200);
+});
+
 server.del('/reset', function(req, res, next) {
 	configserver.clearAll(settings.pyoptions);
 	res.send(200);
