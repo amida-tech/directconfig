@@ -17,3 +17,14 @@ class ConfigService(object):
         if len(ids) > 0:
             self.client.service.deleteTrustBundles(ids)
 
+    def clearAnchors(self):
+        response = self.client.service.listAnchors(0, 99)
+        ids = [r.id for r in response]
+        if len(ids) > 0:
+            self.client.service.removeAnchors(ids)
+
+    def listAnchors(self):
+        response = self.client.service.listAnchors(0, 99)
+        print response
+
+

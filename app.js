@@ -54,9 +54,17 @@ server.get('/file/:filename', function(req, res, next) {
 	});
 });
 
-server.post('/cert/:filename', function(req, res, next) {
-	var filepath = path.join(settings.certDir, req.params.filename);
+server.post('/cert', bodyParser, function(req, res, next) {
+	var info = req.body;
+	var filepath = path.join(settings.certDir, info.filename);
 	configserver.putCert(settings.pyoptions, filepath);
+	res.send(200);
+});
+
+server.post('/anchor', bodyParser, function(req, res, next) {
+	var info = req.body;
+	var filepath = path.join(settings.certDir, info.filename);
+        configserver.addAnchor(settings.pyoptions, filepath, info.owner);
 	res.send(200);
 });
 

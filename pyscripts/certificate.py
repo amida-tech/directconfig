@@ -33,6 +33,21 @@ class Certificate(object):
         c.privateKey = self.isPrivate
         client.service.addCertificates(c)
 
+    def add_to_anchor(self, client, owner):
+        c = client.factory.create("ns0:anchor")
+        c.id = 0 # TODO: not sure why but this avoids err.
+        c.certificateId = 0
+        tp = self.cert.digest("sha1").lower().replace(':','')
+        c.thumbprint = tp
+        c.data = self.keydata.encode("base64")
+        c.owner = owner
+        c.validEndDate = self.get_not_after() 
+        c.validStartDate = self.get_not_before() 
+        c.status.value = "ENABLED"
+        c.incoming = True
+        c.outgoing = True
+        r = client.service.addAnchor([c])
+
 def parse_date(d):
     return datetime.strptime(d[:14], "%Y%m%d%H%M%S")
 
