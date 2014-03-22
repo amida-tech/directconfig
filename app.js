@@ -20,19 +20,19 @@ var settings = {
 	certDir: (process.argv.length > 2) ? process.argv[2] : '/opt/direct/certificates',
 	passout: (process.argv.length > 3) ? process.argv[3] : 'pass:""',
 	privKeyFilename: "drsa-key.pem",
-	getPrivKeyPath: function() {
+	getPrivateKeyPath: function() {
 		return path.join(this.certDir, this.privKeyFilename);
 	},
-	getReqConfigFilePath: function() {
+	getCertRequestConfigPath: function() {
 		return path.join(this.certDir, "dreq-config");
 	},
-	getPKCS10FilePath: function() {
+	getPKCS10Path: function() {
 		return path.join(this.certDir, "dreq.pem");
 	},
-	getSignConfigFilePath: function() {
+	getSignConfigPath: function() {
 		return path.join(this.certDir, "dsign-config");
 	},
-	getPath: function(filename) {
+	getFilePath: function(filename) {
 		return path.join(this.certDir, filename);
 	}
 };
