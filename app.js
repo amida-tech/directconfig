@@ -2,6 +2,7 @@
  * Key server generates and provides key files to the 
  */
 
+var express = require('express');
 var restify = require('restify');
 var path = require('path');
 var fs = require('fs');
@@ -9,93 +10,59 @@ var fs = require('fs');
 var fileutil = require("./lib/fileutil");
 var configserver = require("./lib/configserver");
 var openssl = require("./lib/opensslwrap");
+var runparams = require("./lib/runparams");
 
-var server = restify.createServer();
+var app = express();
 
-var settings = {
-	pyoptions: {
-		pyscriptsdir: path.join(__dirname, "pyscripts"),
-		pycmd: "python"
-	},
-	certDir: (process.argv.length > 2) ? process.argv[2] : '/opt/direct/certificates',
-	passout: (process.argv.length > 3) ? process.argv[3] : 'pass:""',
-	privKeyFilename: "drsa-key.pem",
-	getPrivateKeyPath: function() {
-		return path.join(this.certDir, this.privKeyFilename);
-	},
-	getCertRequestConfigPath: function() {
-		return path.join(this.certDir, "dreq-config");
-	},
-	getPKCS10Path: function() {
-		return path.join(this.certDir, "dreq.pem");
-	},
-	getSignConfigPath: function() {
-		return path.join(this.certDir, "dsign-config");
-	},
-	getFilePath: function(filename) {
-		return path.join(this.certDir, filename);
-	}
-};
+var params = runparams.get();
 
-var bodyParser = restify.bodyParser({mapParams: false});
+app.use(express.json());
 
-server.post('/file/:filename', function(req, res, next) {
-	var filepath = path.join(settings.certDir, req.params.filename);
-    fileutil.putFile.call(this, req, filepath, function(error) {
-        res.send(200);
-	});
-});
+app.post('/file/:filename', fileutil.fileDownload(params));
+app.get('/file/:filename', fileutil.fileUpload(params));
 
-server.get('/file/:filename', function(req, res, next) {
-	var filepath = path.join(settings.certDir, req.params.filename);
-	fs.readFile(filepath, function(err, data) {
-		res.setHeader('content-type', 'application/octet-stream');
-		res.send(data);
-	});
-});
-
-server.post('/cert', bodyParser, function(req, res, next) {
+app.post('/cert', function(req, res, next) {
 	var info = req.body;
-	var filepath = path.join(settings.certDir, info.filename);
-	configserver.putCert(settings.pyoptions, filepath);
+	var filepath = path.join(params.outDirectory, info.filename);
+	configserver.putCert(params.pyoptions, filepath);
 	res.send(200);
 });
 
-server.post('/anchor', bodyParser, function(req, res, next) {
+app.post('/anchor', function(req, res, next) {
 	var info = req.body;
-	var filepath = path.join(settings.certDir, info.filename);
-        configserver.addAnchor(settings.pyoptions, filepath, info.owner);
+	var filepath = path.join(params.outDirectory, info.filename);
+        configserver.addAnchor(params.pyoptions, filepath, info.owner);
 	res.send(200);
 });
 
-server.post('/trustbundle', bodyParser, function(req, res, next) {
+app.post('/trustbundle', function(req, res, next) {
 	var info = req.body;
-	configserver.putTrustBundle(settings.pyoptions, info);
+	configserver.putTrustBundle(params.pyoptions, info);
 	res.send(200);
 });
 
-server.del('/reset', function(req, res, next) {
-	configserver.clearAll(settings.pyoptions);
+app.del('/reset', function(req, res, next) {
+	configserver.clearAll(params.pyoptions);
 	res.send(200);
 });
 
-server.post('/pkcs10', bodyParser, function(req, res, next) {
+app.post('/pkcs10', function(req, res, next) {
 	var info = req.body;
-	openssl.createPKCS10(settings, info);
+	openssl.createPKCS10(params, info);
 	res.send(200);
 });
 
-server.post('/x509', bodyParser, function(req, res, next) {
+app.post('/x509', function(req, res, next) {
 	var info = req.body;
-	openssl.createX509(settings, info);
+	openssl.createX509(params, info);
 	res.send(200);
 });
 
-server.post('/pkcs12', bodyParser, function(req, res, next) {
+app.post('/pkcs12', function(req, res, next) {
 	var info = req.body;
-	openssl.createPKCS12(settings, info);
+	openssl.createPKCS12(params, info);
 	res.send(200);
 });
 
-openssl.createPrivateKey(settings);
-server.listen(3000);
+openssl.generatePrivateKeyFile(params.getPrivateKeyPath(), params.passPhrase);
+app.listen(3000);
