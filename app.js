@@ -21,6 +21,12 @@ app.use(express.json());
 app.post('/file/:filename', fileutil.fileDownload(params));
 app.get('/file/:filename', fileutil.fileUpload(params));
 
+app.del('/reset', configserver.reset(params));
+app.post('/loadPKCS12/:x509BaseName', configserver.loadPKCS12(params));
+
+app.post('/genX509', openssl.generateX509(params));
+app.post('/genPKCS12/:x509BaseName', openssl.generatePKCS12(params));
+
 app.post('/cert', function(req, res, next) {
 	var info = req.body;
 	var filepath = path.join(params.outDirectory, info.filename);
@@ -41,28 +47,7 @@ app.post('/trustbundle', function(req, res, next) {
 	res.send(200);
 });
 
-app.del('/reset', function(req, res, next) {
-	configserver.clearAll(params.pyoptions);
-	res.send(200);
-});
-
-app.post('/pkcs10', function(req, res, next) {
-	var info = req.body;
-	openssl.createPKCS10(params, info);
-	res.send(200);
-});
-
-app.post('/x509', function(req, res, next) {
-	var info = req.body;
-	openssl.createX509(params, info);
-	res.send(200);
-});
-
-app.post('/pkcs12', function(req, res, next) {
-	var info = req.body;
-	openssl.createPKCS12(params, info);
-	res.send(200);
-});
-
-openssl.generatePrivateKeyFile(params.getPrivateKeyPath(), params.passPhrase);
-app.listen(3000);
+var result = openssl.generatePrivateKeyFile(params);
+if (result === null) {
+    app.listen(3000);
+}
